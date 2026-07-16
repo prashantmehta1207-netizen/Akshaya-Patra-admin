@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaint Details - Admin Control</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #064e35;
+            --primary-light: #0b6643;
+            --accent-color: #8dc63f;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            padding: 24px;
+            text-align: center;
+            background-color: #ffffff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar-logo {
+            width: 100%;
+            max-width: 160px;
+            height: auto;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 24px 0;
+            flex: 1;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            padding: 14px 24px;
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 4px 16px;
+            border-radius: 8px;
+        }
+
+        .sidebar-menu li a i {
+            margin-right: 12px;
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-menu li.active a,
+        .sidebar-menu li a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        .sidebar-footer {
+            padding: 24px;
+        }
+
+        .btn-logout {
+            width: 100%;
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 40px;
+            max-width: calc(100% - var(--sidebar-width));
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 24px;
+            transition: color 0.2s;
+        }
+
+        .btn-back:hover {
+            color: var(--accent-color);
+        }
+
+        /* --- TWO COLUMN CONTROL PANEL --- */
+        .details-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            align-items: start;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            border: 1px solid #f1f5f9;
+        }
+
+        .complaint-id {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .complaint-subject {
+            font-size: 26px;
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 24px;
+            line-height: 1.3;
+        }
+
+        .info-meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 24px;
+            margin-bottom: 24px;
+        }
+
+        .meta-item label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .meta-item p {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .description-box {
+            background-color: #f8fafc;
+            border-left: 4px solid var(--primary-color);
+            padding: 20px;
+            border-radius: 4px 12px 12px 4px;
+            margin-top: 24px;
+        }
+
+        .description-box label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .description-box p {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #334155;
+        }
+
+        /* --- RIGHT ACTION CONTROL --- */
+        .status-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 12px;
+        }
+
+        .current-badge-box {
+            text-align: center;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+
+        .badge-pending {
+            background-color: #fff8e6;
+            color: #d97706;
+        }
+
+        .badge-inprogress {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .badge-resolved {
+            background-color: #f1f9ec;
+            color: #16a34a;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            background: #fff;
+        }
+
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary-color);
+        }
+
+        .btn-update {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-update:hover {
+            background-color: var(--primary-light);
+        }
+
+        @media (max-width: 992px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                width: 70px;
+            }
+
+            .sidebar-brand,
+            .sidebar-menu span,
+            .btn-logout span,
+            .sidebar-footer {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 70px;
+                max-width: calc(100% - 70px);
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <img src="image.png" alt="Akshaya Patra Logo" class="sidebar-logo">
+        </div>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a>
+            </li>
+            <!-- અહીં લિંક dashboard.html થી બદલીને complaints.html કરી દીધી છે જેથી સીધું લિસ્ટ ખુલે -->
+            <li class="active">
+                <a href="complaints.html"><i class="fa-regular fa-clipboard"></i> <span>Complaints</span></a>
+            </li>
+            <li>
+                <a href="profile.html"><i class="fa-regular fa-user"></i> <span>Profile</span></a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="index.html" class="btn-logout">
+                <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- MAIN CONTROL -->
+    <div class="main-content">
+        <a href="dashboard.html#complaintsSection" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Back to
+            Dashboard</a>
+
+        <div class="details-grid">
+
+            <!-- LEFT MAIN CARD -->
+            <div class="card">
+                <div class="complaint-id" id="txtId">Loading ID...</div>
+                <div class="complaint-subject" id="txtSubject">Loading Subject...</div>
+
+                <div class="info-meta-grid">
+                    <div class="meta-item">
+                        <label>Department Assigned</label>
+                        <p id="txtDept">Loading...</p>
+                    </div>
+                    <div class="meta-item">
+                        <label>Date Registered</label>
+                        <p id="txtDate">Loading...</p>
+                    </div>
+                    <div class="meta-item">
+                        <label>Registered By</label>
+                        <p id="txtUser">Loading...</p>
+                    </div>
+                    <div class="meta-item">
+                        <label>User Email</label>
+                        <p id="txtEmail">Loading...</p>
+                    </div>
+                </div>
+
+                <div class="description-box">
+                    <label>Detailed Issue Description</label>
+                    <p id="txtDesc">Loading detailed description...</p>
+                </div>
+            </div>
+
+            <!-- RIGHT CONTROL SIDEBAR PANEL -->
+            <div class="card">
+                <h2 class="status-title">Current Status</h2>
+                <div class="current-badge-box badge-pending" id="statusBadge">Pending</div>
+
+                <div class="form-group">
+                    <label for="statusSelect">Change Status</label>
+                    <select id="statusSelect">
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="adminRemarks">Admin Remarks / Action Taken</label>
+                    <textarea id="adminRemarks" rows="5"
+                        placeholder="Type resolution note or status comment..."></textarea>
+                </div>
+
+                <button class="btn-update" id="btnUpdate">Update Complaint</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- FIREBASE DETAILED REALTIME FETCHING SCRIPT -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCrne4zTG5Z5wrpps3N6WTX__WJREJ_r1I",
+            authDomain: "akshayapatraassetmanagement.firebaseapp.com",
+            projectId: "akshayapatraassetmanagement",
+            storageBucket: "akshayapatraassetmanagement.firebasestorage.app",
+            messagingSenderId: "746715439733",
+            appId: "1:746715439733:web:e1567c9a04da24398b0e3c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // URL માંથી ID મેળવવું
+        const urlParams = new URLSearchParams(window.location.search);
+        const complaintDocId = urlParams.get('id');
+
+        // DOM Elements
+        const txtId = document.getElementById("txtId");
+        const txtSubject = document.getElementById("txtSubject");
+        const txtDept = document.getElementById("txtDept");
+        const txtDate = document.getElementById("txtDate");
+        const txtUser = document.getElementById("txtUser");
+        const txtEmail = document.getElementById("txtEmail");
+        const txtDesc = document.getElementById("txtDesc");
+        const statusBadge = document.getElementById("statusBadge");
+        const statusSelect = document.getElementById("statusSelect");
+        const adminRemarks = document.getElementById("adminRemarks");
+        const btnUpdate = document.getElementById("btnUpdate");
+
+        if (!complaintDocId) {
+            alert("Error: No Complaint ID found! Going back to dashboard...");
+            window.location.href = "dashboard.html";
+        } else {
+            const docRef = doc(db, "complaints", complaintDocId);
+
+            onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+
+                    // ડેટા મેપિંગ
+                    txtId.innerText = `Complaint ID: #${data.complaintId || complaintDocId.substring(0, 5)}`;
+                    txtSubject.innerText = data.subject || data.title || "No Subject Provided";
+                    txtDept.innerText = data.department || data.category || "General";
+                    txtUser.innerText = data.registeredBy || data.userName || "Anonymous";
+                    txtEmail.innerText = data.userEmail || "Not Available";
+                    txtDesc.innerText = data.description || "No detailed description written.";
+                    adminRemarks.value = data.remarks || data.adminRemarks || "";
+
+                    // તારીખ સેટિંગ
+                    if (data.dateRegistered) {
+                        txtDate.innerText = data.dateRegistered;
+                    } else if (data.createdAt) {
+                        const d = new Date(data.createdAt);
+                        txtDate.innerText = d.toLocaleDateString();
+                    } else {
+                        txtDate.innerText = "N/A";
+                    }
+
+                    // સ્ટેટસ બેજ અને ડ્રોપડાઉન મેનેજમેન્ટ
+                    const currentStatus = data.status || "Pending";
+                    statusSelect.value = currentStatus;
+                    statusBadge.innerText = currentStatus;
+
+                    if (currentStatus === "Resolved") {
+                        statusBadge.className = "current-badge-box badge-resolved";
+                    } else if (currentStatus === "In Progress") {
+                        statusBadge.className = "current-badge-box badge-inprogress";
+                    } else {
+                        statusBadge.className = "current-badge-box badge-pending";
+                    }
+
+                } else {
+                    alert("Document does not exist in database!");
+                    window.location.href = "dashboard.html";
+                }
+            });
+        }
+
+        // અપડેટ બટન ક્લિક હેન્ડલર
+        btnUpdate.addEventListener("click", async () => {
+            try {
+                btnUpdate.innerText = "Updating...";
+                btnUpdate.disabled = true;
+
+                const newStatus = statusSelect.value;
+                const now = new Date();
+                const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " (" + now.toLocaleDateString() + ")";
+
+                const docRef = doc(db, "complaints", complaintDocId);
+                await updateDoc(docRef, {
+                    status: newStatus,
+                    remarks: adminRemarks.value,
+                    adminRemarks: adminRemarks.value, // બંને નામ સપોર્ટ કરવા માટે
+                    history: arrayUnion({
+                        status: newStatus,
+                        time: timeString
+                    })
+                });
+
+                alert("Complaint updated successfully!");
+            } catch (error) {
+                console.error("Error updating document: ", error);
+                alert("Failed to update complaint. Try again!");
+            } finally {
+                btnUpdate.innerText = "Update Complaint";
+                btnUpdate.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>
