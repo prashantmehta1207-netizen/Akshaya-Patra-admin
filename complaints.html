@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akshay Patra - Complaints Registry</title>
+    <!-- Icons and Fonts Styling Setup -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #064e35;
+            --primary-light: #0b6643;
+            --accent-color: #8dc63f;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --sidebar-width: 260px;
+            --border-color: #f1f5f9;
+            --search-border: #e2e8f0;
+            --modal-overlay-bg: rgba(15, 23, 42, 0.6);
+            --modal-desc-bg: #f8fafc;
+            --input-bg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR STYLING */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            padding: 24px;
+            text-align: center;
+            background-color: #ffffff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar-logo {
+            width: 100%;
+            max-width: 160px;
+            height: auto;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 24px 0;
+            flex: 1;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            padding: 14px 24px;
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 4px 16px;
+            border-radius: 8px;
+        }
+
+        .sidebar-menu li a i {
+            margin-right: 12px;
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-menu li.active a,
+        .sidebar-menu li a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        .sidebar-menu li.active a {
+            background-color: var(--primary-light);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-footer {
+            padding: 24px;
+        }
+
+        .btn-logout {
+            width: 100%;
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 40px;
+            max-width: calc(100% - var(--sidebar-width));
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        /* FILTERS BAR SYSTEM */
+        .filters-wrapper {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 16px 14px 40px;
+            border: 1px solid var(--search-border);
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .filter-dropdown {
+            padding: 14px;
+            border: 1px solid var(--search-border);
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            background: white;
+            cursor: pointer;
+        }
+
+        .filter-dropdown:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* TABLES BOX LAYOUT LIKE DASHBOARD */
+        .card-table-box {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: var(--text-muted);
+            padding: 16px 24px;
+            font-weight: 600;
+            font-size: 13px;
+            border-bottom: 2px solid #edf2f7;
+        }
+
+        td {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        tr.clickable-row {
+            cursor: pointer;
+        }
+
+        tr.clickable-row:hover {
+            background-color: var(--border-color);
+        }
+
+        /* STATUS BADGES & PRIORITY TAGS */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .badge-pending {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-inprogress {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .badge-resolved {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        .tag-priority {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: 6px;
+        }
+
+        .priority-high {
+            background-color: #fee2e2;
+            color: #ef4444;
+        }
+
+        .priority-medium {
+            background-color: #ffedd5;
+            color: #f97316;
+        }
+
+        .priority-low {
+            background-color: #f0fdf4;
+            color: #22c55e;
+        }
+
+        /* MODAL OVERLAY AND CARD COMPONENT DESIGN */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--modal-overlay-bg);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: white;
+            width: 100%;
+            max-width: 600px;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            padding: 28px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .btn-close-modal {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .btn-close-modal:hover {
+            color: #ef4444;
+        }
+
+        .modal-body-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .modal-info-item label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .modal-info-item p {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .modal-desc-box {
+            background-color: var(--modal-desc-bg);
+            border-left: 4px solid var(--primary-color);
+            padding: 12px 16px;
+            border-radius: 4px 12px 12px 4px;
+            margin-top: 8px;
+            margin-bottom: 16px;
+        }
+
+        .modal-desc-box label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .modal-desc-box p {
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-main);
+        }
+
+        /* IMAGE PREVIEW FRAME */
+        .modal-image-preview-box {
+            background-color: #f1f5f9;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            text-align: center;
+            border: 1px solid var(--search-border);
+        }
+
+        .modal-image-preview-box label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            text-align: left;
+        }
+
+        .modal-uploaded-img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 2px solid white;
+            cursor: pointer;
+        }
+
+        .admin-action-section {
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+            margin-top: 16px;
+        }
+
+        .admin-action-section h4 {
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .admin-select,
+        .admin-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--search-border);
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            font-size: 13.5px;
+            outline: none;
+        }
+
+        .btn-update-ticket {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-update-ticket:hover {
+            background-color: var(--primary-light);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+                padding: 20px;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .filters-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar Navigation Components -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <img src="image.png" alt="Akshaya Patra Logo" class="sidebar-logo">
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a></li>
+            <!-- <li>
+                <a href="main.html"><i class="fa-solid fa-wrench"></i><span>Asset Maintenance</span></a>
+            </li> -->
+            <li class="active"><a href="complaints.html"><i class="fa-regular fa-clipboard"></i>
+                    <span>Complaints</span></a></li>
+            <li><a href="profile.html"><i class="fa-regular fa-user"></i> <span>Profile</span></a></li>
+            <li><a href="analysis.html"><i class="fa-solid fa-chart-line"></i> <span>Analysis</span></a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="index.html" class="btn-logout">
+                <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Active Workspace View Area -->
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Complaints Registry</h1>
+        </div>
+
+        <!-- Dynamic Inputs Filter Section Controls -->
+        <div class="filters-wrapper">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchFilter" placeholder="Search by Complaint ID, Subject or User...">
+            </div>
+            <select class="filter-dropdown" id="deptFilter">
+                <option value="All">All Categories</option>
+                <option value="Kitchen">Kitchen</option>
+                <option value="IT">IT</option>
+                <option value="Mechanical">Mechanical</option>
+                <option value="Electrical">Electrical</option>
+                <option value="Maintenance">Maintenance</option>
+            </select>
+            <select class="filter-dropdown" id="statusFilter">
+                <option value="All">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+            </select>
+        </div>
+
+        <!-- Master Data Log Container Table View -->
+        <div class="card-table-box">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Department</th>
+                            <th>Subject</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="complaintsTableBody">
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Accessing live
+                                complaints registry...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP DETAIL MODAL OVERLAY WRAPPER -->
+    <div class="modal-overlay" id="detailsModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalComplaintId">Complaint #0000</h3>
+                <button class="btn-close-modal" id="btnCloseModal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body-grid">
+                <div class="modal-info-item"><label>Registered By</label>
+                    <p id="modalUser">Anonymous</p>
+                </div>
+                <div class="modal-info-item"><label>Department</label>
+                    <p id="modalDept">General</p>
+                </div>
+                <div class="modal-info-item"><label>Date/Time Registered</label>
+                    <p id="modalDate">N/A</p>
+                </div>
+                <div class="modal-info-item" id="modalServiceInfoBox" style="display:none;"><label
+                        style="color:#16a34a;">Resolution Details</label>
+                    <p style="font-weight: 600;">Cost: <span id="lblDisplayCost" style="color:#16a34a;">₹0</span> | By:
+                        <span id="lblDisplayResolvedBy">N/A</span>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-info-item" style="margin-bottom: 8px;"><label>Subject</label>
+                <p id="modalSubject" style="font-weight: 600; font-size: 14.5px;"></p>
+            </div>
+
+            <!-- Dynamic Image Node Rendering container for complaints proof picture -->
+            <div class="modal-image-preview-box" id="modalImageContainer" style="display: none;">
+                <label><i class="fa-regular fa-image"></i> Uploaded Complaint Photo</label>
+                <img id="modalComplaintImage" class="modal-uploaded-img" src="" alt="Complaint Proof"
+                    onclick="window.open(this.src, '_blank')">
+            </div>
+
+            <div class="modal-desc-box">
+                <label>Detailed Problem Description</label>
+                <p id="modalDesc">No details provided.</p>
+            </div>
+
+            <!-- Admin Updates Management panel controls section -->
+            <div class="admin-action-section">
+                <h4><i class="fa-solid fa-user-gear"></i> Administrative Actions</h4>
+                <div class="form-group">
+                    <label>Change Ticket Status</label>
+                    <select class="admin-select" id="updateStatusSelect">
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                    </select>
+                </div>
+
+                <!-- Extra properties parameters input forms when status triggers "Resolved" event block -->
+                <div id="resolvedExtraInputs"
+                    style="display: none; background: #f0fdf4; padding: 14px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #bbf7d0;">
+                    <div class="form-group">
+                        <label style="color:#064e35; font-weight:600;">Total Repair Cost (₹) <span
+                                style="color:red;">*</span></label>
+                        <input type="number" id="txtTotalCost" class="admin-input" placeholder="e.g. 1500" min="0">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label style="color:#064e35; font-weight:600;">Resolved By (Technician Name) <span
+                                style="color:red;">*</span></label>
+                        <input type="text" id="txtResolvedBy" class="admin-input" placeholder="e.g. Ramesh Kumar">
+                    </div>
+                </div>
+
+                <button class="btn-update-ticket" id="btnUpdateTicket"><i class="fa-solid fa-floppy-disk"></i> Update
+                    Status & Cost</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN JAVASCRIPT RECOGNITION AND STATE ACTIONS ROUTINES ENGINE -->
+    <script>
+        const API_URL = "http://localhost:3000/api/complaints";
+        let allComplaints = [];
+        let activeSelectedId = null;
+
+        // Fetch UI Element References from DOM Node tree
+        const tableBody = document.getElementById("complaintsTableBody");
+        const searchFilter = document.getElementById("searchFilter");
+        const deptFilter = document.getElementById("deptFilter");
+        const statusFilter = document.getElementById("statusFilter");
+
+        const detailsModal = document.getElementById("detailsModal");
+        const btnCloseModal = document.getElementById("btnCloseModal");
+        const updateStatusSelect = document.getElementById("updateStatusSelect");
+        const resolvedExtraInputs = document.getElementById("resolvedExtraInputs");
+
+        const txtTotalCost = document.getElementById("txtTotalCost");
+        const txtResolvedBy = document.getElementById("txtResolvedBy");
+        const btnUpdateTicket = document.getElementById("btnUpdateTicket");
+
+        /**
+         * 1. Fetch live Array Dataset from backend database service API
+         */
+        async function fetchComplaints() {
+            try {
+                const response = await fetch(API_URL);
+                allComplaints = await response.json();
+                applyFilters();
+            } catch (err) {
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: red; padding:20px;">Failed to load database registry. Check if your Node server is running on port 3000.</td></tr>`;
+            }
+        }
+
+        /**
+         * 2. Process Filters & HIDE all resolved ticket types from active screen list
+         */
+        function applyFilters() {
+            const search = searchFilter.value.toLowerCase().trim();
+            const dept = deptFilter.value;
+            const status = statusFilter.value;
+
+            const filtered = allComplaints.filter(item => {
+                const currentStatus = item.status || "Pending";
+
+                // Hiding Resolved Tickets Logic
+                if (currentStatus.toLowerCase() === "resolved") {
+                    return false;
+                }
+
+                const cId = (item.complaintId || "").toLowerCase();
+                const subject = (item.title || "").toLowerCase();
+                const user = (item.userName || "").toLowerCase();
+
+                const matchSearch = cId.includes(search) || subject.includes(search) || user.includes(search);
+                const matchDept = dept === "All" || (item.category && item.category.toLowerCase().includes(dept.toLowerCase()));
+                const matchStatus = status === "All" || currentStatus.toLowerCase() === status.toLowerCase();
+
+                return matchSearch && matchDept && matchStatus;
+            });
+
+            renderTable(filtered);
+        }
+
+        /**
+         * 3. Construct and append Table Row Elements dynamically to the View DOM
+         */
+        function renderTable(dataArray) {
+            tableBody.innerHTML = "";
+            if (dataArray.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No active matching rows found.</td></tr>`;
+                return;
+            }
+
+            dataArray.forEach(data => {
+                let badgeClass = "badge-pending";
+                if (data.status?.toLowerCase() === "in progress") badgeClass = "badge-inprogress";
+                if (data.status?.toLowerCase() === "resolved") badgeClass = "badge-resolved";
+
+                let pPriority = data.priority || "Medium";
+                let priorityClass = `priority-${pPriority.toLowerCase()}`;
+                let imgIcon = data.imagePath ? `<i class="fa-regular fa-image" style="color: #3b82f6; margin-left: 6px;" title="Photo Attached"></i>` : '';
+
+                const tr = document.createElement("tr");
+                tr.className = "clickable-row";
+                tr.setAttribute("onclick", `openModal(${data.id})`);
+                tr.innerHTML = `
+                    <td><strong>#${data.complaintId}</strong></td>
+                    <td>${data.category || 'N/A'}</td>
+                    <td>${data.title || 'No Title'} ${imgIcon} <span class="tag-priority ${priorityClass}">${pPriority}</span></td>
+                    <td><span class="badge ${badgeClass}">${data.status || 'Pending'}</span></td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        /**
+         * 4. Pop open information view Overlay displaying individual properties metrics cards details
+         */
+        window.openModal = function (id) {
+            const data = allComplaints.find(c => c.id === id);
+            if (data) {
+                activeSelectedId = data.id;
+                document.getElementById("modalComplaintId").innerText = `Complaint #${data.complaintId}`;
+                document.getElementById("modalUser").innerText = data.userName || "Anonymous";
+                document.getElementById("modalDept").innerText = data.category || "General";
+                document.getElementById("modalSubject").innerText = data.title || "No Subject";
+
+                // CLEAN REPEATED TEXT FIX
+                let descriptionText = data.description || "No description provided.";
+                const duplicatePattern = /(Re-open Reason:[^|.\n]+[|.\n\s]*)\1+/g;
+                descriptionText = descriptionText.replace(duplicatePattern, '$1');
+                document.getElementById("modalDesc").innerText = descriptionText;
+
+                updateStatusSelect.value = data.status || "Pending";
+
+                if (data.imagePath) {
+                    document.getElementById("modalComplaintImage").src = `http://localhost:3000${data.imagePath}`;
+                    document.getElementById("modalImageContainer").style.display = "block";
+                } else {
+                    document.getElementById("modalImageContainer").style.display = "none";
+                }
+
+                if (data.status === "Resolved") {
+                    document.getElementById("modalServiceInfoBox").style.display = "block";
+                    document.getElementById("lblDisplayCost").innerText = `₹${data.totalCost || 0}`;
+                    document.getElementById("lblDisplayResolvedBy").innerText = data.resolvedBy || "Admin";
+                    resolvedExtraInputs.style.display = "block";
+                    txtTotalCost.value = data.totalCost || 0;
+                    txtResolvedBy.value = data.resolvedBy || "";
+                } else {
+                    document.getElementById("modalServiceInfoBox").style.display = "none";
+                    resolvedExtraInputs.style.display = "none";
+                    txtTotalCost.value = "";
+                    txtResolvedBy.value = "";
+                }
+
+                // TIME ADDITION FIX: Shows Date and Time together
+                if (data.createdAt) {
+                    const formattedDateTime = new Date(data.createdAt).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    }) + ", " + new Date(data.createdAt).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    });
+
+                    document.getElementById("modalDate").innerText = formattedDateTime;
+                }
+
+                detailsModal.classList.add("active");
+            }
+        }
+
+        updateStatusSelect.addEventListener("change", () => {
+            if (updateStatusSelect.value === "Resolved") {
+                resolvedExtraInputs.style.display = "block";
+            } else {
+                resolvedExtraInputs.style.display = "none";
+            }
+        });
+
+        /**
+         * 5. Send Network requests payloads updates to update Ticket Properties inside Database
+         */
+        btnUpdateTicket.addEventListener("click", async () => {
+            if (!activeSelectedId) return;
+            const currentSelectedStatus = updateStatusSelect.value;
+
+            let costVal = 0;
+            let resolvedByName = "Admin";
+
+            if (currentSelectedStatus === "Resolved") {
+                if (!txtTotalCost.value || txtTotalCost.value.trim() === "") {
+                    alert("Please enter total repair cost."); return;
+                }
+                if (!txtResolvedBy.value || txtResolvedBy.value.trim() === "") {
+                    alert("Please enter the technician's name."); return;
+                }
+                costVal = parseFloat(txtTotalCost.value);
+                resolvedByName = txtResolvedBy.value.trim();
+            }
+
+            btnUpdateTicket.disabled = true;
+            btnUpdateTicket.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+
+            try {
+                const response = await fetch(`${API_URL}/${activeSelectedId}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        status: currentSelectedStatus,
+                        totalCost: costVal,
+                        resolvedBy: resolvedByName
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alert("Ticket updated successfully!");
+                    detailsModal.classList.remove("active");
+                    fetchComplaints();
+                } else {
+                    alert("Update failed: " + (result.error || "Server Error"));
+                }
+            } catch (err) {
+                alert("Error connecting to server.");
+            } finally {
+                btnUpdateTicket.disabled = false;
+                btnUpdateTicket.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Update Status & Cost`;
+            }
+        });
+
+        searchFilter.addEventListener("input", applyFilters);
+        deptFilter.addEventListener("change", applyFilters);
+        statusFilter.addEventListener("change", applyFilters);
+        btnCloseModal.addEventListener("click", () => { detailsModal.classList.remove("active"); });
+
+        fetchComplaints();
+    </script>
+</body>
+
+</html>

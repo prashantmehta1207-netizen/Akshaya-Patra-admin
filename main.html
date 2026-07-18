@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Asset Maintenance & Cost Logs</title>
+    <!-- Link to your main project CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome for Sidebar Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Lucide Icons CDN for Form/Table -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            color: #1e293b;
+            display: flex;
+        }
+
+        /* --- SIDEBAR STYLES --- */
+        .sidebar {
+            width: 260px;
+            background-color: #004d30;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: white;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            background: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .sidebar-logo {
+            max-width: 85%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 20px 15px;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-menu li a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .sidebar-menu li.active a {
+            background-color: #0b6643;
+            color: white;
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 20px 15px;
+        }
+
+        .btn-logout {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background-color: #f04444;
+            color: white;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            transition: background 0.2s;
+        }
+
+        .btn-logout:hover {
+            background-color: #dc2626;
+        }
+
+        /* --- MAIN CONTENT AREA --- */
+        .main-content {
+            margin-left: 260px;
+            padding: 40px 20px;
+            flex-grow: 1;
+            min-height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            background-color: #f8fafc;
+        }
+
+        .admin-container {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .page-header {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .page-header h2 {
+            margin: 0;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+        }
+
+        .page-header p {
+            margin: 5px 0 0 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #334155;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: #fff;
+            color: #1e293b;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #16a34a;
+        }
+
+        .btn-submit {
+            background: #16a34a;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .btn-submit:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        th,
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge.repair {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge.maintenance {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge.upgrade {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.pending {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .asset-img {
+            width: 35px;
+            height: 35px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #e2e8f0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 1. SIDEBAR NAVIGATION -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <img src="image.png" alt="Akshaya Patra Logo" class="sidebar-logo">
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a></li>
+            <li class="active"><a href="main.html"><i class="fa-solid fa-wrench"></i> <span>Asset Maintenance</span></a>
+            </li>
+            <li><a href="complaints.html"><i class="fa-regular fa-clipboard"></i> <span>Complaints</span></a></li>
+            <li><a href="profile.html"><i class="fa-regular fa-user"></i> <span>Profile</span></a></li>
+            <li><a href="analysis.html"><i class="fa-solid fa-chart-line"></i> <span>Analysis</span></a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="index.html" class="btn-logout">
+                <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 2. MAIN CONTENT AREA -->
+    <div class="main-content">
+        <div class="admin-container">
+
+            <!-- Page Header -->
+            <header class="page-header">
+                <h2><i data-lucide="wrench"></i> Asset Maintenance & Cost Control</h2>
+                <p>Resolve user complaints, log maintenance expenditures, and synchronize data directly with Snipe-IT.
+                </p>
+            </header>
+
+            <!-- Form Card: Log New Maintenance -->
+            <div class="card">
+                <h3><i data-lucide="plus-circle"></i> Resolve & Log Maintenance Cost</h3>
+                <form id="maintenanceForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Asset ID / Tag *</label>
+                            <input type="text" id="asset_id" required placeholder="e.g., 145">
+                        </div>
+                        <div class="form-group">
+                            <label>Maintenance Title / Issue *</label>
+                            <input type="text" id="title" required placeholder="e.g., RAM Replacement">
+                        </div>
+                        <div class="form-group">
+                            <label>Maintenance Type *</label>
+                            <select id="maintenance_type" required>
+                                <option value="Repair">Repair</option>
+                                <option value="Maintenance">Maintenance</option>
+                                <option value="Upgrade">Upgrade</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Start Date *</label>
+                            <input type="date" id="start_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Completion Date (Resolved)</label>
+                            <input type="date" id="completion_date">
+                        </div>
+                        <div class="form-group">
+                            <label>Maintenance Cost (₹) *</label>
+                            <input type="number" step="0.01" id="cost" required placeholder="0.00">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Admin Resolution Notes / Technical Details</label>
+                            <textarea id="notes" rows="3" placeholder="Provide details on what was fixed..."></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" id="submitBtn" class="btn-submit"><i data-lucide="check-circle"></i> Log &
+                        Resolve Complaint</button>
+                </form>
+            </div>
+
+            <!-- Data Table Card -->
+            <div class="card">
+                <h3><i data-lucide="list"></i> Maintenance & Cost History Records</h3>
+                <div class="table-responsive">
+                    <table id="maintenanceTable">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Asset Tag</th>
+                                <th>Asset Name</th>
+                                <th>Serial No.</th>
+                                <th>Model No.</th>
+                                <th>Type</th>
+                                <th>Cost</th>
+                                <th>Notes / Admin Resolve</th>
+                                <th>Checked Out To</th>
+                                <th>Location</th>
+                                <th>Start Date</th>
+                                <th>Expected Completion</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="12" style="text-align: center; color: #64748b; padding: 30px;">
+                                    Loading live records from Snipe-IT server...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SCRIPT SECTION -->
+    <script>
+        lucide.createIcons();
+
+        const currentHost = "http://localhost:5001";
+        let currentAssetTag = "";
+
+        function autoFillFormFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            currentAssetTag = urlParams.get('asset_tag');
+            const title = urlParams.get('title');
+            const cost = urlParams.get('cost');
+            const notes = urlParams.get('notes');
+
+            if (currentAssetTag) document.getElementById('asset_id').value = currentAssetTag;
+            if (title) document.getElementById('title').value = title;
+            if (cost) document.getElementById('cost').value = cost;
+            if (notes) document.getElementById('notes').value = decodeURIComponent(notes);
+
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('start_date').value = today;
+        }
+
+        // Fetch & Display Maintenance Data from Backend
+        async function loadMaintenanceData() {
+            try {
+                const response = await fetch(`${currentHost}/api/maintenances`);
+                const result = await response.json();
+                const tbody = document.getElementById("tableBody");
+                tbody.innerHTML = "";
+
+                if (result.success && result.rows.length > 0) {
+                    let finalRows = result.rows;
+
+                    // URL ફિલ્ટર ચેકિંગ
+                    if (currentAssetTag) {
+                        finalRows = result.rows.filter(row => {
+                            if (!row.asset) return false;
+                            const searchTag = currentAssetTag.toString().trim().toLowerCase();
+                            const assetTagFromDB = row.asset.asset_tag ? row.asset.asset_tag.toString().trim().toLowerCase() : "";
+                            const assetIdFromDB = row.asset.id ? row.asset.id.toString().trim().toLowerCase() : "";
+                            return assetTagFromDB === searchTag || assetIdFromDB === searchTag;
+                        });
+                    }
+
+                    if (finalRows.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="12" style="text-align: center; color: #64748b; padding: 20px;">No maintenance records found for Asset Tag: ${currentAssetTag}</td></tr>`;
+                        return;
+                    }
+
+                    finalRows.forEach(row => {
+                        const tr = document.createElement("tr");
+
+                        // બેકએન્ડના ટાઈપ લોજિક પ્રમાણે ક્લાસ સેટિંગ
+                        const rawType = row.maintenance_type || row.asset_maintenance_type || 'Repair';
+                        const typeClass = rawType.toLowerCase();
+
+                        // --- ફિક્સ લોજિક: કોમા (,) રિમૂવલ અને પાર્સિંગ ---
+                        let actualCost = 0;
+                        if (row.cost !== undefined && row.cost !== null) {
+                            let cleanCost = row.cost.toString().replace(/,/g, '');
+                            actualCost = parseFloat(cleanCost);
+                        } else if (row.action_logs && row.action_logs.cost) {
+                            let cleanCost = row.action_logs.cost.toString().replace(/,/g, '');
+                            actualCost = parseFloat(cleanCost);
+                        }
+
+                        // ઇન્ડિયન રૂપી કરન્સી ફોર્મેટમાં ગોઠવણ
+                        const displayCost = (!isNaN(actualCost) && actualCost > 0) ? actualCost.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0.00";
+
+                        const displayNotes = row.notes ? row.notes : 'No resolution notes';
+                        const assetName = row.asset && row.asset.name ? row.asset.name : (row.title ? row.title : 'N/A');
+
+                        // ઓબ્જેક્ટ અથવા સિંગલ સ્ટ્રિંગમાંથી પ્રોપર ડેટ ફોર્મેટ મેળવવું
+                        const startDate = row.start_date && row.start_date.date ? row.start_date.date : (typeof row.start_date === 'string' ? row.start_date : 'N/A');
+                        const completionDate = row.completion_date && row.completion_date.date ? row.completion_date.date : (typeof row.completion_date === 'string' ? row.completion_date : '<span class="badge pending">Pending</span>');
+
+                        tr.innerHTML = `
+                            <td><img src="${row.asset && row.asset.image ? row.asset.image : 'logo.png'}" class="asset-img" alt="Asset" onerror="this.src='logo.png'"></td>
+                            <td><strong>${row.asset ? row.asset.asset_tag : 'N/A'}</strong></td>
+                            <td>${assetName}</td>
+                            <td>${row.asset && row.asset.serial ? row.asset.serial : 'N/A'}</td>
+                            <td>${row.model ? row.model.name : 'N/A'}</td>
+                            <td><span class="badge ${typeClass}">${rawType}</span></td>
+                            
+                            <td style="color: #16a34a; font-weight: bold;">₹${displayCost}</td>
+                            <td><span title="${displayNotes}">${displayNotes}</span></td>
+                            
+                            <td>${row.assigned_to ? row.assigned_to.name : 'N/A'}</td>
+                            <td>${row.location ? row.location.name : 'N/A'}</td>
+                            <td>${startDate}</td>
+                            <td>${completionDate}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="12" style="text-align: center; color: #64748b; padding: 20px;">No matching records found</td></tr>`;
+                }
+            } catch (error) {
+                console.error("Error loading table:", error);
+                document.getElementById("tableBody").innerHTML = `<tr><td colspan="12" style="text-align: center; color: #ef4444; padding: 20px;">Failed to connect with Snipe-IT database!</td></tr>`;
+            }
+        }
+
+        // Submit Form Data to Backend
+        document.getElementById("maintenanceForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById("submitBtn");
+            btn.disabled = true;
+            btn.innerText = "Saving to Snipe-IT...";
+
+            const payload = {
+                asset_id: document.getElementById("asset_id").value,
+                title: document.getElementById("title").value,
+                maintenance_type: document.getElementById("maintenance_type").value,
+                start_date: document.getElementById("start_date").value,
+                completion_date: document.getElementById("completion_date").value,
+                cost: document.getElementById("cost").value,
+                notes: document.getElementById("notes").value
+            };
+
+            try {
+                const response = await fetch(`${currentHost}/api/maintenances`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert("Maintenance log and cost updated successfully in Snipe-IT!");
+                    document.getElementById("maintenanceForm").reset();
+                    loadMaintenanceData();
+                } else {
+                    alert("Error: " + data.error);
+                }
+            } catch (err) {
+                alert("Server connection failed! Please check if backend is running on Port 5001.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="check-circle"></i> Log & Resolve Complaint';
+                lucide.createIcons();
+            }
+        });
+
+        window.onload = function () {
+            autoFillFormFromURL();
+            loadMaintenanceData();
+        };
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaints Analysis Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --primary-color: #064e35;
+            --primary-light: #0b6643;
+            --accent-color: #8dc63f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- SIDEBAR STYLING --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #ffffff;
+        }
+
+        .sidebar-logo {
+            width: 100%;
+            max-width: 160px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 20px 0;
+            flex: 1;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            padding: 14px 24px;
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 4px 16px;
+            border-radius: 8px;
+        }
+
+        .sidebar-menu li a i {
+            margin-right: 15px;
+            font-size: 18px;
+            width: 25px;
+            text-align: center;
+        }
+
+        .sidebar-menu li.active a,
+        .sidebar-menu li a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        .sidebar-menu li.active a {
+            background-color: var(--primary-light);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .sidebar-footer {
+            padding: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-logout {
+            width: 100%;
+            background-color: #d9534f;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        /* CONTAINER ADJUSTMENT */
+        .container {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 40px;
+            max-width: calc(100% - var(--sidebar-width));
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        .btn-pdf {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-excel {
+            background-color: #198754;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .filter-section {
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .filter-control {
+            padding: 8px 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+            font-size: 14px;
+            background-color: #fff;
+            cursor: pointer;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-card h3,
+        .table-card h3 {
+            color: #444;
+            margin-bottom: 20px;
+            font-size: 18px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+
+        .table-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            table-layout: fixed;
+        }
+
+        th,
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #555;
+            word-wrap: break-word;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #0b6643;
+            color: white;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .col-id {
+            width: 15%;
+        }
+
+        .col-dept {
+            width: 20%;
+        }
+
+        .col-title {
+            width: 33%;
+        }
+
+        .col-status {
+            width: 14%;
+        }
+
+        .col-date {
+            width: 18%;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .badge-pending {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .badge-inprogress {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .badge-resolved {
+            background-color: #198754;
+            color: #fff;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 70px;
+            }
+
+            .sidebar-brand,
+            .sidebar-menu span,
+            .btn-logout span,
+            .sidebar-footer {
+                display: none;
+            }
+
+            .container {
+                margin-left: 70px;
+                max-width: calc(100% - 70px);
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+            }
+
+            .sidebar-brand,
+            .sidebar-menu span,
+            .btn-logout span,
+            .sidebar-footer {
+                display: block;
+            }
+
+            .sidebar-brand {
+                display: flex;
+                justify-content: center;
+            }
+
+            .container {
+                margin-left: 0;
+                max-width: 100%;
+                padding: 20px;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <img src="image.png" alt="Akshaya Patra Logo" class="sidebar-logo">
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a></li>
+            <li><a href="complaints.html"><i class="fa-regular fa-clipboard"></i> <span>Complaints</span></a></li>
+            <li><a href="profile.html"><i class="fa-regular fa-user"></i> <span>Profile</span></a></li>
+            <li class="active"><a href="analysis.html"><i class="fa-solid fa-chart-line"></i> <span>Analysis</span></a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="index.html" class="btn-logout">
+                <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1><i class="fa-solid fa-chart-line" style="color: #0b6643;"></i> Complaints Analytics</h1>
+            <div class="btn-group">
+                <button class="btn btn-pdf" id="downloadPDF"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+                <button class="btn btn-excel" id="downloadExcel"><i class="fa-solid fa-file-excel"></i> Export
+                    CSV</button>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-group">
+                <label for="yearSelect"><i class="fa-solid fa-calendar"></i> Year:</label>
+                <select id="yearSelect" class="filter-control">
+                    <option value="all">All Years</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="monthSelect"><i class="fa-solid fa-calendar-minus"></i> Month:</label>
+                <select id="monthSelect" class="filter-control">
+                    <option value="all">All Months</option>
+                    <option value="0">January</option>
+                    <option value="1">February</option>
+                    <option value="2">March</option>
+                    <option value="3">April</option>
+                    <option value="4">May</option>
+                    <option value="5">June</option>
+                    <option value="6">July</option>
+                    <option value="7">August</option>
+                    <option value="8">September</option>
+                    <option value="9">October</option>
+                    <option value="10">November</option>
+                    <option value="11">December</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3><i class="fa-solid fa-calendar-days"></i> Monthly Complaints Trend</h3>
+                <div class="chart-container">
+                    <canvas id="monthlyBarChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3><i class="fa-solid fa-building"></i> Department Share</h3>
+                <div class="chart-container">
+                    <canvas id="deptDoughnutChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-card" id="onlyTableArea">
+            <h3><i class="fa-solid fa-list"></i> Detailed Complaints Record</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-id">Complaint ID</th>
+                        <th class="col-dept">Department</th>
+                        <th class="col-title">Title</th>
+                        <th class="col-status">Status</th>
+                        <th class="col-date">Date Created</th>
+                    </tr>
+                </thead>
+                <tbody id="complaintsTableBody">
+                    <tr>
+                        <td colspan="5" style="text-align: center;">Loading data records...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // API URL (આપણે પોર્ટ 5001 વાપરીએ છીએ)
+        const API_URL = "http://localhost:5001/api/complaints";
+
+        let monthlyChart = null;
+        let deptChart = null;
+        let allComplaints = [];
+        let filteredComplaintsGlobal = [];
+
+        const yearSelect = document.getElementById('yearSelect');
+        const monthSelect = document.getElementById('monthSelect');
+
+        // ૧. MySQL API માંથી ડેટા લાવવા માટેનું ફંક્શન
+        async function fetchComplaints() {
+            try {
+                const response = await fetch(API_URL);
+                allComplaints = await response.json();
+
+                populateYearDropdown(allComplaints);
+                applyFilters();
+            } catch (err) {
+                console.error("API Error:", err);
+                document.getElementById('complaintsTableBody').innerHTML = `
+                    <tr><td colspan="5" style="text-align: center; color: red;">Failed to load analytics database registry. Please check if node server.js is running.</td></tr>
+                `;
+            }
+        }
+
+        function populateYearDropdown(complaints) {
+            const years = new Set();
+            complaints.forEach(item => {
+                if (item.createdAt) {
+                    const date = new Date(item.createdAt);
+                    if (!isNaN(date)) {
+                        years.add(date.getFullYear());
+                    }
+                }
+            });
+
+            yearSelect.innerHTML = '<option value="all">All Years</option>';
+            Array.from(years).sort().forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            });
+        }
+
+        function applyFilters() {
+            const selectedYear = yearSelect.value;
+            const selectedMonth = monthSelect.value;
+
+            filteredComplaintsGlobal = allComplaints.filter(item => {
+                if (!item.createdAt) return false;
+                const date = new Date(item.createdAt);
+                if (isNaN(date)) return false;
+
+                const matchesYear = (selectedYear === 'all' || date.getFullYear().toString() === selectedYear);
+                const matchesMonth = (selectedMonth === 'all' || date.getMonth().toString() === selectedMonth);
+
+                return matchesYear && matchesMonth;
+            });
+
+            processAnalytics(filteredComplaintsGlobal);
+        }
+
+        yearSelect.addEventListener('change', applyFilters);
+        monthSelect.addEventListener('change', applyFilters);
+
+        function processAnalytics(complaints) {
+            const monthlyCounts = { Jan: 0, Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0, Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0 };
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+            const deptCounts = {
+                "Mechanical": 0,
+                "IT": 0,
+                "Electrical": 0,
+                "Maintenance": 0,
+                "Kitchen/Production": 0,
+            };
+
+            const tableBody = document.getElementById('complaintsTableBody');
+            let tableHTML = "";
+
+            // ID પ્રમાણે સોર્ટિંગ
+            complaints.sort((a, b) => {
+                const idA = a.complaintid || a.complaintId || "";
+                const idB = b.complaintid || b.complaintId || "";
+                return idA.localeCompare(idB, undefined, { numeric: true, sensitivity: 'base' });
+            });
+
+            complaints.forEach((item) => {
+                // મહિના પ્રમાણે કાઉન્ટ
+                if (item.createdAt) {
+                    const date = new Date(item.createdAt);
+                    if (!isNaN(date)) {
+                        const monthName = monthNames[date.getMonth()];
+                        if (monthlyCounts[monthName] !== undefined) {
+                            monthlyCounts[monthName]++;
+                        }
+                    }
+                }
+
+                // કેટેગરી/ડિપાર્ટમેન્ટ મેપિંગ
+                let rawCategory = (item.category || item.department || "general").toLowerCase();
+                let mappedDept = "General";
+
+                if (rawCategory.includes("mech")) mappedDept = "Mechanical";
+                else if (rawCategory === "it" || rawCategory.includes("information") || rawCategory.includes("support")) mappedDept = "IT";
+                else if (rawCategory.includes("ele")) mappedDept = "Electrical";
+                else if (rawCategory.includes("main")) mappedDept = "Maintenance";
+                else if (rawCategory.includes("ki") || rawCategory.includes("pro")) mappedDept = "Kitchen/Production";
+                else mappedDept = item.category || item.department || "General";
+
+                if (deptCounts[mappedDept] !== undefined) {
+                    deptCounts[mappedDept]++;
+                } else {
+                    deptCounts[mappedDept] = 1;
+                }
+
+                // સ્ટેટસ બેજ ક્લાસ સેટઅપ
+                let statusClass = 'badge-pending';
+                const statusLower = (item.status || 'Pending').toLowerCase();
+                if (statusLower === 'in progress') statusClass = 'badge-inprogress';
+                else if (statusLower === 'resolved') statusClass = 'badge-resolved';
+
+                const finalComplaintID = item.complaintid || item.complaintId || "N/A";
+                const finalTitle = item.title || item.subject || "No Title Specified";
+
+                let displayDate = "N/A";
+                if (item.createdAt) {
+                    const d = new Date(item.createdAt);
+                    if (!isNaN(d)) {
+                        displayDate = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                    }
+                }
+
+                tableHTML += `
+                <tr>
+                    <td><strong>#${finalComplaintID}</strong></td>
+                    <td>${mappedDept}</td>
+                    <td>${finalTitle}</td>
+                    <td><span class="badge ${statusClass}">${item.status || 'Pending'}</span></td>
+                    <td>${displayDate}</td>
+                </tr>
+            `;
+            });
+
+            tableBody.innerHTML = tableHTML || `<tr><td colspan="5" style="text-align: center;">No complaints found for the selected filter.</td></tr>`;
+
+            updateMonthlyChart(monthlyCounts);
+            updateDeptChart(deptCounts);
+        }
+
+        function updateMonthlyChart(data) {
+            const ctx = document.getElementById('monthlyBarChart').getContext('2d');
+            if (monthlyChart) {
+                monthlyChart.data.datasets[0].data = Object.values(data);
+                monthlyChart.update();
+            } else {
+                monthlyChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            label: 'Total Complaints',
+                            data: Object.values(data),
+                            backgroundColor: '#a2cfb6',
+                            borderColor: '#7cb696',
+                            borderWidth: 1,
+                            hoverBackgroundColor: '#5ea37e',
+                            borderRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                    }
+                });
+            }
+        }
+
+        function updateDeptChart(data) {
+            const ctx = document.getElementById('deptDoughnutChart').getContext('2d');
+            const chartColors = ['#dc3545', '#0d6efd', '#ffc107', '#0b6643', '#fd7e14', '#6c757d'];
+
+            if (deptChart) {
+                deptChart.data.labels = Object.keys(data);
+                deptChart.data.datasets[0].data = Object.values(data);
+                deptChart.update();
+            } else {
+                deptChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(data),
+                        datasets: [{
+                            data: Object.values(data),
+                            backgroundColor: chartColors
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'right' }
+                        }
+                    }
+                });
+            }
+        }
+
+        // પીડીએફ ડાઉનલોડ કરવા માટે
+        document.getElementById('downloadPDF').addEventListener('click', () => {
+            const element = document.getElementById('onlyTableArea');
+            const opt = {
+                margin: [15, 12, 15, 12],
+                filename: 'Complaints_Table_Report.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, scrollY: 0, scrollX: 0, letterRendering: true, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        });
+
+        // સીએસવી એક્સપોર્ટ કરવા માટે
+        document.getElementById('downloadExcel').addEventListener('click', () => {
+            if (filteredComplaintsGlobal.length === 0) return alert("No data available to export!");
+
+            let csvContent = "data:text/csv;charset=utf-8,ID,Category/Dept,Title,Status,Date Created\n";
+
+            filteredComplaintsGlobal.forEach((item) => {
+                let dateStr = "N/A";
+                if (item.createdAt) {
+                    const d = new Date(item.createdAt);
+                    if (!isNaN(d)) {
+                        dateStr = `${d.getDate()}-${d.getMonth() + 1}-${d.getFullYear()}`;
+                    }
+                }
+
+                let rawCategory = (item.category || item.department || "general").toLowerCase();
+                let mappedDept = "General";
+                if (rawCategory.includes("mech")) mappedDept = "Mechanical";
+                else if (rawCategory === "it" || rawCategory.includes("information") || rawCategory.includes("support")) mappedDept = "IT";
+                else if (rawCategory.includes("ele")) mappedDept = "Electrical";
+                else if (rawCategory.includes("main")) mappedDept = "Maintenance";
+                else if (rawCategory.includes("ki") || rawCategory.includes("pro")) mappedDept = "Kitchen/Production";
+                else mappedDept = item.category || item.department || "General";
+
+                const finalComplaintID = item.complaintid || item.complaintId || "N/A";
+                const finalTitle = item.title || item.subject || "No Title Specified";
+                const finalStatus = item.status || "Pending";
+
+                const row = `"#${finalComplaintID}","${mappedDept}","${finalTitle}","${finalStatus}","${dateStr}"`;
+                csvContent += row + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Filtered_Complaints_Data.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // પેજ લોડ થાય ત્યારે ડેટા મેળવવો
+        fetchComplaints();
+    </script>
+</body>
+
+</html>
